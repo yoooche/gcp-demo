@@ -50,6 +50,16 @@ jobs:
           cd terraform
           terraform init
 
+      - name: Import existing resources
+        run: |
+          cd terraform
+          terraform import google_compute_network.vpc_network projects/${{ secrets.GCP_PROJECT_ID }}/global/networks/springboot-vpc || true
+          terraform import google_compute_subnetwork.subnet projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.GCP_REGION }}/subnetworks/springboot-subnet || true
+          terraform import google_compute_firewall.allow_http projects/${{ secrets.GCP_PROJECT_ID }}/global/firewalls/allow-http || true
+          terraform import google_vpc_access_connector.connector projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.GCP_REGION }}/vpcAccessConnectors/vpc-connector || true
+          terraform import google_cloud_run_service.springboot_app projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.GCP_REGION }}/services/springboot-app || true
+          terraform import google_cloud_run_service_iam_member.public_access projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.GCP_REGION }}/services/springboot-app/roles/run.invoker/allUsers || true
+
       - name: Terraform Plan
         run: |
           cd terraform
