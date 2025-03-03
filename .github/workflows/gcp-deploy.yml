@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ release ]
     types: [ closed ]
+    
 jobs:
   deploy:
     if: github.event.pull_request.merged == true || github.event_name == 'push'
