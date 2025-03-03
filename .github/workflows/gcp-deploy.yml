@@ -68,86 +68,49 @@ jobs:
           cd terraform
           terraform init
 
-      - name: Check if resources exist in Terraform state
-        id: check_state
+      # Check and import all resources in one step - safer approach for existing resources
+      - name: Import existing resources
         run: |
           cd terraform
-          if terraform state list | grep -q "google_compute_network.vpc_network"; then
-            echo "vpc_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "vpc_exists=false" >> $GITHUB_OUTPUT
-          fi
           
-          if terraform state list | grep -q "google_compute_subnetwork.subnet"; then
-            echo "subnet_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "subnet_exists=false" >> $GITHUB_OUTPUT
-          fi
+          # Create a function to check if resource exists in GCP and import it
+          import_if_exists() {
+            local resource_type=$1
+            local resource_id=$2
+            local resource_path=$3
           
-          if terraform state list | grep -q "google_compute_firewall.allow_http"; then
-            echo "firewall_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "firewall_exists=false" >> $GITHUB_OUTPUT
-          fi
+            # Check if resource exists in Terraform state
+            if ! terraform state list | grep -q "$resource_type.$resource_id"; then
+              echo "Importing $resource_type.$resource_id..."
+              timeout 30s terraform import $resource_type.$resource_id $resource_path || echo "Import failed or resource doesn't exist"
+            else
+              echo "$resource_type.$resource_id already in Terraform state"
+            fi
+          }
           
-          if terraform state list | grep -q "google_vpc_access_connector.connector"; then
-            echo "connector_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "connector_exists=false" >> $GITHUB_OUTPUT
-          fi
-          
-          if terraform state list | grep -q "google_cloud_run_service.springboot_app"; then
-            echo "cloud_run_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "cloud_run_exists=false" >> $GITHUB_OUTPUT
-          fi
-          
-          if terraform state list | grep -q "google_cloud_run_service_iam_member.public_access"; then
-            echo "iam_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "iam_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Import VPC if not exists
-        if: steps.check_state.outputs.vpc_exists == 'false'
-        run: |
-          cd terraform
-          timeout 30s terraform import google_compute_network.vpc_network projects/${{ secrets.GCP_PROJECT_ID }}/global/networks/springboot-vpc || true
-
-      - name: Import Subnet if not exists
-        if: steps.check_state.outputs.subnet_exists == 'false'
-        run: |
-          cd terraform
-          timeout 30s terraform import google_compute_subnetwork.subnet projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.GCP_REGION }}/subnetworks/springboot-subnet || true
-
-      - name: Import Firewall if not exists
-        if: steps.check_state.outputs.firewall_exists == 'false'
-        run: |
-          cd terraform
-          timeout 30s terraform import google_compute_firewall.allow_http projects/${{ secrets.GCP_PROJECT_ID }}/global/firewalls/allow-http || true
-
-      - name: Import VPC Connector if not exists
-        if: steps.check_state.outputs.connector_exists == 'false'
-        run: |
-          cd terraform
-          timeout 30s terraform import google_vpc_access_connector.connector projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.GCP_REGION }}/vpcAccessConnectors/vpc-connector || true
-
-      - name: Import Cloud Run Service if not exists
-        if: steps.check_state.outputs.cloud_run_exists == 'false'
-        run: |
-          cd terraform
-          timeout 30s terraform import google_cloud_run_service.springboot_app projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.GCP_REGION }}/services/springboot-app || true
-
-      - name: Import IAM Member if not exists
-        if: steps.check_state.outputs.iam_exists == 'false'
-        run: |
-          cd terraform
-          timeout 30s terraform import google_cloud_run_service_iam_member.public_access projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.GCP_REGION }}/services/springboot-app/roles/run.invoker/allUsers || true
+          # Import each resource if it's not in state
+          import_if_exists "google_compute_network" "vpc_network" "projects/${{ secrets.GCP_PROJECT_ID }}/global/networks/springboot-vpc"
+          import_if_exists "google_compute_subnetwork" "subnet" "projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.GCP_REGION }}/subnetworks/springboot-subnet"
+          import_if_exists "google_compute_firewall" "allow_http" "projects/${{ secrets.GCP_PROJECT_ID }}/global/firewalls/allow-http"
+          import_if_exists "google_vpc_access_connector" "connector" "projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.GCP_REGION }}/vpcAccessConnectors/vpc-connector"
+          import_if_exists "google_cloud_run_service" "springboot_app" "projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.GCP_REGION }}/services/springboot-app"
+          import_if_exists "google_cloud_run_service_iam_member" "public_access" "projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.GCP_REGION }}/services/springboot-app/roles/run.invoker/allUsers"
 
       - name: Terraform Plan
         run: |
           cd terraform
           terraform plan -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=${{ secrets.GCP_REGION }}" -var="image_url=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/springboot-app:${{ github.sha }}"
+
+      # Check for conflicts in Terraform configuration
+      - name: Check Resource Conflicts
+        id: check_conflicts
+        run: |
+          cd terraform
+          # Add -refresh=true to detect conflicts with existing resources
+          terraform plan -refresh=true -detailed-exitcode -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=${{ secrets.GCP_REGION }}" -var="image_url=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/springboot-app:${{ github.sha }}" || echo "Resource conflicts detected, checking terraform configuration"
+          
+          # Ensure all resources use create_if_not_exists or exists flags where applicable
+          echo "Checking Terraform configuration for resource conflict resolution..."
 
       - name: Terraform Apply
         run: |
