@@ -7,6 +7,14 @@ provider "google" {
 resource "google_compute_network" "vpc_network" {
   name                    = "springboot-vpc"
   auto_create_subnetworks = false
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      description,
+      routing_mode,
+    ]
+  }
 }
 
 resource "google_compute_subnetwork" "subnet" {
@@ -14,6 +22,14 @@ resource "google_compute_subnetwork" "subnet" {
   ip_cidr_range = "10.0.0.0/24"
   region        = var.region
   network       = google_compute_network.vpc_network.id
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      description,
+      private_ip_google_access,
+    ]
+  }
 }
 
 # 防火牆規則
@@ -27,6 +43,15 @@ resource "google_compute_firewall" "allow_http" {
   }
 
   source_ranges = ["0.0.0.0/0"]
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      description,
+      disabled,
+      priority,
+    ]
+  }
 }
 
 # VPC 連接器
@@ -35,6 +60,15 @@ resource "google_vpc_access_connector" "connector" {
   region        = var.region
   ip_cidr_range = "10.8.0.0/28"
   network       = google_compute_network.vpc_network.id
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      min_instances,
+      max_instances,
+      machine_type,
+    ]
+  }
 }
 
 # Cloud Run 服務
@@ -66,6 +100,17 @@ resource "google_cloud_run_service" "springboot_app" {
   }
 
   depends_on = [google_vpc_access_connector.connector]
+
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["client.knative.dev/user-image"],
+      metadata[0].annotations["run.googleapis.com/client-name"],
+      metadata[0].annotations["run.googleapis.com/client-version"],
+      template[0].metadata[0].annotations["client.knative.dev/user-image"],
+      template[0].metadata[0].annotations["run.googleapis.com/client-name"],
+      template[0].metadata[0].annotations["run.googleapis.com/client-version"],
+    ]
+  }
 }
 
 # IAM 設置公開訪問
