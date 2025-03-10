@@ -11,7 +11,7 @@ public class DemoController {
 
     @GetMapping
     public ResponseEntity<String> getDemoString() {
-        return ResponseEntity.ok("Demo String");
+        return ResponseEntity.ok("cherry pick test 3");
     }
 
 }
