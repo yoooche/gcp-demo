@@ -11,7 +11,8 @@ public class DemoController {
 
     @GetMapping
     public ResponseEntity<String> getDemoString() {
-        System.out.println("rebase test");
+        System.out.println("rebase test 1");
+        System.out.println("rebase test 2");
         return ResponseEntity.ok("cherry pick test 3");
     }
 
