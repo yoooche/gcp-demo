@@ -32,11 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-# Terraform 狀態文件和目錄
-.terraform/
-*.tfstate
-*.tfstate.*
-.terraform.lock.hcl
-
-# 敏感資訊
-*.tfvars
+sql/
+docker-compose.yaml
+.env
