@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.eight</groupId>
-    <artifactId>demo-module</artifactId>
+    <artifactId>playground-module</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>demo-module</name>
-    <description>demo-module</description>
+    <name>playground-module</name>
+    <description>playground-module</description>
     <url/>
     <licenses>
         <license/>

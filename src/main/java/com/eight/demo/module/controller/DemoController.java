@@ -1,5 +1,7 @@
 package com.eight.demo.module.controller;
 
+import com.eight.demo.module.common.constant.StatusCode;
+import com.eight.demo.module.common.error.BaseException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +13,7 @@ public class DemoController {
 
     @GetMapping
     public ResponseEntity<String> getDemoString() {
-        return ResponseEntity.ok("Demo rebase test");
+        throw new BaseException(StatusCode.TOO_MANY_REQUEST, "TEST");
     }
 
 }
