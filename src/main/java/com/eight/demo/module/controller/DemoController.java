@@ -1,7 +1,6 @@
 package com.eight.demo.module.controller;
 
-import com.eight.demo.module.common.constant.StatusCode;
-import com.eight.demo.module.common.error.BaseException;
+import com.eight.demo.module.common.annotation.RateLimiter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DemoController {
 
+    @RateLimiter(key = "demo", limit = 5)
     @GetMapping
     public ResponseEntity<String> getDemoString() {
-        throw new BaseException(StatusCode.TOO_MANY_REQUEST, "TEST");
+        return ResponseEntity.ok("Rate limiter test");
     }
-
 }
