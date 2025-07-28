@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.eight.demo.module.common.constant.Algorithm;
+
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
@@ -23,11 +25,4 @@ public @interface RateLimiter {
 
     Class<?> fallbackClass() default Void.class;
 
-    enum Algorithm {
-        FIXED_WINDOW,
-        TOKEN_BUCKET,
-        SLIDING_WINDOW_LOG,
-        SLIDING_WINDOW_COUNTER,
-        LEAKY_BUCKET
-    }
 }

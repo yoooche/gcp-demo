@@ -3,7 +3,7 @@ package com.eight.demo.module.common.aop;
 import com.eight.demo.module.common.annotation.RateLimiter;
 import com.eight.demo.module.common.constant.StatusCode;
 import com.eight.demo.module.common.error.BaseException;
-import com.eight.demo.module.service.limiter.FixedWindowLimiter;
+import com.eight.demo.module.service.limiter.RateLimiterFactory;
 import com.eight.demo.module.utils.RateLimiterKeyGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,13 +19,13 @@ import org.springframework.stereotype.Component;
 public class RateLimitAspect {
 
     private final RateLimiterKeyGenerator rateLimiterKeyGenerator;
-
-    private final FixedWindowLimiter fixedWindowLimiter;
+    private final RateLimiterFactory rateLimiterFactory;
 
     @Around("@annotation(rateLimiter)")
     public Object around(ProceedingJoinPoint joinPoint, RateLimiter rateLimiter) throws Throwable {
         var key = rateLimiterKeyGenerator.generateKey(joinPoint, rateLimiter);
-        var isAllowed = fixedWindowLimiter.isAllowed(key, rateLimiter.limit(), rateLimiter.window());
+        var strategy = rateLimiterFactory.getStrategy(rateLimiter.algorithm());
+        var isAllowed = strategy.isAllow(key, rateLimiter);
 
         if (!isAllowed) {
             var method =  joinPoint.getSignature().toShortString();

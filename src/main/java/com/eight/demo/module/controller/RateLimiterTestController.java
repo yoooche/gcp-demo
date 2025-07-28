@@ -1,0 +1,26 @@
+package com.eight.demo.module.controller;
+
+import com.eight.demo.module.common.annotation.RateLimiter;
+import com.eight.demo.module.common.constant.Algorithm;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RequestMapping(value = "/rate")
+@RestController
+public class RateLimiterTestController {
+
+    @RateLimiter(key = "demo", limit = 5)
+    @GetMapping(value = "/window/fixed")
+    public ResponseEntity<String> getFixedWindowString() {
+        return ResponseEntity.ok("Rate limiter test");
+    }
+
+    @RateLimiter(key = "slide", limit = 5, algorithm = Algorithm.SLIDING_WINDOW_COUNTER)
+    @GetMapping(value = "/window/sliding/counter")
+    public ResponseEntity<String> getSlidingWindowString() {
+        return ResponseEntity.ok("Sliding window limiter");
+    }
+}
