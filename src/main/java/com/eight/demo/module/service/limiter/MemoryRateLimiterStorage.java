@@ -8,12 +8,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
 
+import com.eight.demo.module.to.limiter.TokenBucket;
+
 @Component
 public class MemoryRateLimiterStorage implements RateLimiterStorage {
 
     private static final ConcurrentHashMap<String, Counter> storage = new ConcurrentHashMap<>();
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static final ConcurrentHashMap<String, ConcurrentSkipListMap<Long, AtomicLong>> slidingWindowStorage = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, TokenBucket> tokenBucketStorage = new ConcurrentHashMap<>();
     private static final int SLIDING_WIN_BUCKET_SIZE_SECS = 10;
 
     public MemoryRateLimiterStorage() {
@@ -44,8 +47,7 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
 
         var expireTime = timestamp - windowSeconds;
         timeSeries.headMap(expireTime).clear();
-
-        return getCountInSlidingWindow(key, timestamp - windowSeconds, timestamp);
+        return getCountInSlidingWindow(key, expireTime, timestamp);
     }
 
     @Override
@@ -73,6 +75,32 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
         }
     }
 
+    @Override
+    public boolean tryConsumeToken(String key, int capacity, int refillRate) {
+        var bucket = tokenBucketStorage.computeIfAbsent(key, k -> new TokenBucket(capacity, refillRate));
+
+        synchronized (bucket) {
+            refillTokens(bucket);
+            if (bucket.getTokens() >= 1) {
+                bucket.setTokens(bucket.getTokens() - 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void refillTokens(TokenBucket bucket) {
+        var now = System.currentTimeMillis();
+        var elapsedTime = now - bucket.getLastRefillTime();
+
+        if (elapsedTime > 0) {
+            var tokensToAdd = (elapsedTime / 1000.0) * bucket.getRefillRate();
+            var newTokens = Math.min(bucket.getCapacity(), bucket.getTokens() + tokensToAdd);
+            bucket.setTokens(newTokens);
+            bucket.setLastRefillTime(now);
+        }
+    }
+
     private void cleanExpireKey() {
         var currentTime = System.currentTimeMillis() / 1000;
         var expireTime = currentTime - 1000;
@@ -85,6 +113,13 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
             timeSeries.headMap(expireTime).clear();
         });
         slidingWindowStorage.entrySet().removeIf((entry -> entry.getValue().isEmpty()));
+
+        // token bucket
+        var beforeOneHour = System.currentTimeMillis() - 3600000;
+        tokenBucketStorage.entrySet().removeIf(entry -> {
+            var bucket = entry.getValue();
+            return bucket.getLastRefillTime() < beforeOneHour;
+        });
     }
 
     private record Counter(AtomicLong count, long expireTime) {

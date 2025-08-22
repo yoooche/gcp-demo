@@ -8,5 +8,7 @@ public interface RateLimiterStorage {
 
     long getCountInSlidingWindow(String key, long windownStartTime, long windowEndTime);
 
+    boolean tryConsumeToken(String key, int capacity, int refillRate);
+
     void cleanupExpiredWindows(String key, long expireTime);
 }

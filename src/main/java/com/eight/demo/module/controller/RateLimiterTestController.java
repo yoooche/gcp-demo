@@ -23,4 +23,10 @@ public class RateLimiterTestController {
     public ResponseEntity<String> getSlidingWindowString() {
         return ResponseEntity.ok("Sliding window limiter");
     }
+
+    @RateLimiter(key = "token-bucket", limit = 5, window = 10, algorithm = Algorithm.TOKEN_BUCKET)
+    @GetMapping(value = "/token-bucket")
+    public ResponseEntity<String> getTokenBucketString() {
+        return ResponseEntity.ok("Token Bucket limiter");
+    }
 }
