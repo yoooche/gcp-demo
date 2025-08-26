@@ -10,5 +10,7 @@ public interface RateLimiterStorage {
 
     boolean tryConsumeToken(String key, int capacity, int refillRate);
 
+    boolean tryAddToLeakyBucket(String key, int capacity, double leakRate);
+
     void cleanupExpiredWindows(String key, long expireTime);
 }

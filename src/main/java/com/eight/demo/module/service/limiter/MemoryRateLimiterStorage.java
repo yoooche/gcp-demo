@@ -7,7 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
-
+import com.eight.demo.module.to.limiter.LeakyBucket;
 import com.eight.demo.module.to.limiter.TokenBucket;
 
 @Component
@@ -17,6 +17,7 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static final ConcurrentHashMap<String, ConcurrentSkipListMap<Long, AtomicLong>> slidingWindowStorage = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, TokenBucket> tokenBucketStorage = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, LeakyBucket> leakyBucketStorage = new ConcurrentHashMap<>();
     private static final int SLIDING_WIN_BUCKET_SIZE_SECS = 10;
 
     public MemoryRateLimiterStorage() {
@@ -104,6 +105,7 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
     private void cleanExpireKey() {
         var currentTime = System.currentTimeMillis() / 1000;
         var expireTime = currentTime - 1000;
+        var beforeOneHour = System.currentTimeMillis() - 3600000;
         
         // fixed window
         storage.entrySet().removeIf(entry -> entry.getValue().isExpired());
@@ -115,16 +117,48 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
         slidingWindowStorage.entrySet().removeIf((entry -> entry.getValue().isEmpty()));
 
         // token bucket
-        var beforeOneHour = System.currentTimeMillis() - 3600000;
         tokenBucketStorage.entrySet().removeIf(entry -> {
             var bucket = entry.getValue();
             return bucket.getLastRefillTime() < beforeOneHour;
         });
+
+        // leacky bucket
+        leakyBucketStorage.entrySet().removeIf(entry -> {
+            var bucket = entry.getValue();
+            return bucket.getLastLeakTime() < beforeOneHour && bucket.getCurrentTasks() == 0;
+        });
+
     }
 
     private record Counter(AtomicLong count, long expireTime) {
         public boolean isExpired() {
             return System.currentTimeMillis() > expireTime;
+        }
+    }
+
+    @Override
+    public boolean tryAddToLeakyBucket(String key, int capacity, double leakRate) {
+        var bucket = leakyBucketStorage.computeIfAbsent(key, k -> new LeakyBucket(capacity, leakRate));
+
+        synchronized (bucket) {
+            leakFromBucket(bucket);
+            if (bucket.getCurrentTasks() < bucket.getCapacity()) {
+                bucket.setCurrentTasks(bucket.getCurrentTasks() + 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void leakFromBucket(LeakyBucket bucket) {
+        var now = System.currentTimeMillis();
+        var elapsedTime = now - bucket.getLastLeakTime();
+
+        if (elapsedTime > 0) {
+            var leakTasks = (elapsedTime / 1000.0) * bucket.getLeakRate();
+            var newTasks = Math.max(0, bucket.getCurrentTasks() - leakTasks);
+            bucket.setCurrentTasks(newTasks);
+            bucket.setLastLeakTime(now);
         }
     }
 }

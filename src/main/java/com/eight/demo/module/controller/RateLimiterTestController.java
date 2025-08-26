@@ -29,4 +29,10 @@ public class RateLimiterTestController {
     public ResponseEntity<String> getTokenBucketString() {
         return ResponseEntity.ok("Token Bucket limiter");
     }
+
+    @RateLimiter(key = "leaky-bucket", limit = 5, window = 10, algorithm = Algorithm.LEAKY_BUCKET)
+    @GetMapping(value = "/leaky-bucket")
+    public ResponseEntity<String> getLeakyBucketString() {
+        return ResponseEntity.ok("Leaky Bucket limiter");
+    }
 }
