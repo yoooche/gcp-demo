@@ -15,11 +15,13 @@ public @interface RateLimiter {
 
     Algorithm algorithm() default Algorithm.FIXED_WINDOW;
 
-    String key();
+    String key() default "rateLimiter";
 
     int limit() default 10;
 
     int window() default 60;
+
+    boolean byClientIP() default false;
 
     String fallback() default "";
 

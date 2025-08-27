@@ -2,6 +2,7 @@ package com.eight.demo.module.controller;
 
 import com.eight.demo.module.common.annotation.RateLimiter;
 import com.eight.demo.module.common.constant.Algorithm;
+import com.eight.demo.module.core.RequestContextHelper;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,5 +35,11 @@ public class RateLimiterTestController {
     @GetMapping(value = "/leaky-bucket")
     public ResponseEntity<String> getLeakyBucketString() {
         return ResponseEntity.ok("Leaky Bucket limiter");
+    }
+
+    @RateLimiter(limit = 5, window = 10, byClientIP = true)
+    @GetMapping(value = "/request-context")
+    public ResponseEntity<String> getRequestContextString() {
+        return ResponseEntity.ok(RequestContextHelper.getClientIp());
     }
 }
