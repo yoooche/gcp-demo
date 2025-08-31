@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 import com.eight.demo.module.common.annotation.RateLimiter;
 import com.eight.demo.module.common.constant.Algorithm;
-import com.eight.demo.module.service.limiter.RateLimiterStrategy;
 import com.eight.demo.module.service.limiter.storage.RateLimiterStorage;
 
 @Component
