@@ -1,16 +1,21 @@
-package com.eight.demo.module.service.limiter;
+package com.eight.demo.module.service.limiter.strategy;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.eight.demo.module.common.annotation.RateLimiter;
 import com.eight.demo.module.common.constant.Algorithm;
+import com.eight.demo.module.service.limiter.RateLimiterStrategy;
+import com.eight.demo.module.service.limiter.storage.RateLimiterStorage;
 
-@RequiredArgsConstructor
 @Component
 public class FixedWindowLimiter implements RateLimiterStrategy {
 
     private final RateLimiterStorage storage;
+
+    public FixedWindowLimiter(@Qualifier("redisRateLimiterStorage") RateLimiterStorage storage) {
+        this.storage = storage;
+    }
 
     @Override
     public boolean isAllow(String key, RateLimiter rateLimiter) {

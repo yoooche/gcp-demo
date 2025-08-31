@@ -1,4 +1,4 @@
-package com.eight.demo.module.service.limiter;
+package com.eight.demo.module.service.limiter.storage;
 
 public interface RateLimiterStorage {
 

@@ -1,4 +1,4 @@
-package com.eight.demo.module.service.limiter;
+package com.eight.demo.module.service.limiter.strategy;
 
 import com.eight.demo.module.common.annotation.RateLimiter;
 import com.eight.demo.module.common.constant.Algorithm;

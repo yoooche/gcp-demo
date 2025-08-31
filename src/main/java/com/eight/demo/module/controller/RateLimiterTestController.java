@@ -1,14 +1,17 @@
 package com.eight.demo.module.controller;
 
-import com.eight.demo.module.common.annotation.RateLimiter;
-import com.eight.demo.module.common.constant.Algorithm;
-import com.eight.demo.module.core.RequestContextHelper;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eight.demo.module.common.annotation.RateLimiter;
+import com.eight.demo.module.common.constant.Algorithm;
+import com.eight.demo.module.core.RequestContextHelper;
+
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @RequestMapping(value = "/rate")
 @RestController
 public class RateLimiterTestController {

@@ -1,4 +1,4 @@
-package com.eight.demo.module.service.limiter;
+package com.eight.demo.module.service.limiter.storage;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -7,10 +7,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
+
 import com.eight.demo.module.to.limiter.LeakyBucket;
 import com.eight.demo.module.to.limiter.TokenBucket;
 
-@Component
+@Component("memoryRateLimiterStorage")
 public class MemoryRateLimiterStorage implements RateLimiterStorage {
 
     private static final ConcurrentHashMap<String, Counter> storage = new ConcurrentHashMap<>();
@@ -26,7 +27,7 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
 
     @Override
     public long incrementAndSetExpire(String key, long expireSeconds) {
-        var expireTime = System.currentTimeMillis() + expireSeconds  * 1000;
+        var expireTime = System.currentTimeMillis() + expireSeconds * 1000;
         var counter = storage.compute(key, (k, existing) -> {
             if (existing == null || existing.isExpired()) {
                 return new Counter(new AtomicLong(1), expireTime);
@@ -59,10 +60,10 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
         }
 
         return timeSeries.subMap(windownStartTime, true, windowEndTime, true)
-                        .values()
-                        .stream()
-                        .mapToLong(AtomicLong::get)
-                        .sum();
+                .values()
+                .stream()
+                .mapToLong(AtomicLong::get)
+                .sum();
     }
 
     @Override
@@ -106,7 +107,7 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
         var currentTime = System.currentTimeMillis() / 1000;
         var expireTime = currentTime - 1000;
         var beforeOneHour = System.currentTimeMillis() - 3600000;
-        
+
         // fixed window
         storage.entrySet().removeIf(entry -> entry.getValue().isExpired());
 
@@ -130,7 +131,15 @@ public class MemoryRateLimiterStorage implements RateLimiterStorage {
 
     }
 
-    private record Counter(AtomicLong count, long expireTime) {
+    private static class Counter {
+        private final AtomicLong count;
+        private final long expireTime;
+
+        public Counter(AtomicLong count, long expireTime) {
+            this.count = count;
+            this.expireTime = expireTime;
+        }
+
         public boolean isExpired() {
             return System.currentTimeMillis() > expireTime;
         }
