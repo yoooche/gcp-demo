@@ -1,7 +1,9 @@
 spring:
   application:
     name: playground-module
-
+  config:
+    import:
+      - kafka.yaml
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
