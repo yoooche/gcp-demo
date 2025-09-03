@@ -1,7 +1,7 @@
 package com.eight.demo.module.service.limiter.strategy;
 
 import com.eight.demo.module.common.annotation.RateLimiter;
-import com.eight.demo.module.common.constant.Algorithm;
+import com.eight.demo.module.constant.Algorithm;
 
 public interface RateLimiterStrategy {
 

@@ -1,7 +1,9 @@
 package com.eight.demo.module.common.error;
 
-import com.eight.demo.module.common.constant.StatusCode;
 import java.io.Serializable;
+
+import com.eight.demo.module.constant.StatusCode;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

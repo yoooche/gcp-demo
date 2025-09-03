@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eight.demo.module.common.annotation.RateLimiter;
-import com.eight.demo.module.common.constant.Algorithm;
+import com.eight.demo.module.constant.Algorithm;
 import com.eight.demo.module.core.RequestContextHelper;
 
 import lombok.RequiredArgsConstructor;

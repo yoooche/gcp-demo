@@ -2,7 +2,8 @@ package com.eight.demo.module.service.limiter.storage;
 
 import org.springframework.stereotype.Component;
 import com.eight.demo.module.cache.RedisHelper;
-import com.eight.demo.module.common.constant.RedisKey;
+import com.eight.demo.module.constant.RedisKey;
+
 import lombok.RequiredArgsConstructor;
 
 @Component("redisRateLimiterStorage")

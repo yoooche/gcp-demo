@@ -1,11 +1,12 @@
 package com.eight.demo.module.common.error;
 
-import com.eight.demo.module.common.constant.StatusCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import com.eight.demo.module.constant.StatusCode;
 
 @Slf4j
 @ControllerAdvice

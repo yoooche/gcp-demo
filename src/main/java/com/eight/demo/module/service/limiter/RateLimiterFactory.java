@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.eight.demo.module.common.constant.Algorithm;
-import com.eight.demo.module.common.constant.StatusCode;
 import com.eight.demo.module.common.error.BaseException;
+import com.eight.demo.module.constant.Algorithm;
+import com.eight.demo.module.constant.StatusCode;
 import com.eight.demo.module.service.limiter.strategy.RateLimiterStrategy;
 
 @Slf4j

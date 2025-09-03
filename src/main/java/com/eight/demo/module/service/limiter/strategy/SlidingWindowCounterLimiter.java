@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.eight.demo.module.common.annotation.RateLimiter;
-import com.eight.demo.module.common.constant.Algorithm;
+import com.eight.demo.module.constant.Algorithm;
 import com.eight.demo.module.service.limiter.storage.RateLimiterStorage;
 
 @Component

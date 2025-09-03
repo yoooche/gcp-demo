@@ -1,4 +1,4 @@
-package com.eight.demo.module.common.constant;
+package com.eight.demo.module.constant;
 
 public enum Algorithm {
 

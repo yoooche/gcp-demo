@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.eight.demo.module.common.constant.Algorithm;
+import com.eight.demo.module.constant.Algorithm;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
