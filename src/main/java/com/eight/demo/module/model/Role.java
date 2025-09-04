@@ -12,18 +12,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "MAIL")
-public class Mail extends BaseEntity {
+@Table(name = "ROLE")
+public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MAIL_ID")
-    private Long mailId;
+    @Column(name = "ROLE_ID")
+    private Integer roleId;
 
-    @Column(name = "RECEIVER_ROLE_ID")
-    private Integer receiverRoleId;
-
-    @Column(name = "CONTENT")
-    private String content;
-
+    @Column(name = "ROLE_TYPE")
+    private String roleType;
 }

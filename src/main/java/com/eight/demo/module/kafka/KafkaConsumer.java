@@ -3,9 +3,8 @@ package com.eight.demo.module.kafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.eight.demo.module.model.Mail;
-import com.eight.demo.module.repository.IMailRepo;
-import com.eight.demo.module.to.MailSendTO;
+import com.eight.demo.module.service.MailService;
+import com.eight.demo.module.to.MailInboxTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -16,18 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
-    private final IMailRepo mailRepo;
+    private final MailService mailService;
 
-    @KafkaListener(topics = Topic.MAIL)
+    @KafkaListener(topics = Topic.MAIL_INBOX)
     public void processMailNotification(String content) {
-        log.info("Receive topic [{}] and message=[{}]", Topic.MAIL, content);
+        log.info("Receive topic [{}] and message=[{}]", Topic.MAIL_INBOX, content);
         try {
             var om = new ObjectMapper();
-            var mail = om.readValue(content, MailSendTO.class);
-            var model = new Mail();
-            model.setReceiverRole(mail.getReceiverRole());
-            model.setContent(mail.getContent());
-            mailRepo.saveAndFlush(model);
+            var mail = om.readValue(content, MailInboxTO.class);
+            mailService.saveUserMailInbox(mail);
         } catch (Exception e) {
             log.warn("Failed to process mail task", e);
         }

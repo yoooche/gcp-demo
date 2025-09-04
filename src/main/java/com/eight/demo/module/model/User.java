@@ -1,7 +1,5 @@
 package com.eight.demo.module.model;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +13,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "USER")
-public class User {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,15 +35,4 @@ public class User {
     @Column(name = "PHONE")
     private String phone;
 
-    @Column(name = "TYPE")
-    private Short type;
-
-    @Column(name = "VERSION")
-    private Short version;
-
-    @Column(name = "CREATE_TIME")
-    private LocalDateTime createTime = LocalDateTime.now();
-
-    @Column(name = "UPDATE_TIME")
-    private LocalDateTime updateTime = LocalDateTime.now();
 }

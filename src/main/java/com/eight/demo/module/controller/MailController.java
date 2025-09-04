@@ -19,8 +19,8 @@ public class MailController {
     private final MailService mailService;
 
     @PostMapping
-    public ResponseEntity<Void> sendMail(@RequestBody MailSendTO mailSendTO) {
+    public ResponseEntity<String> sendMail(@RequestBody MailSendTO mailSendTO) {
         mailService.sendMail(mailSendTO);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Platform mails sent!");
     }
 }
