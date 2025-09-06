@@ -20,6 +20,12 @@ public class Mail extends BaseEntity {
     @Column(name = "MAIL_ID")
     private Long mailId;
 
+    @Column(name = "TITLE")
+    private String title;
+
+    @Column(name = "SENDER")
+    private String sender;
+
     @Column(name = "RECEIVER_ROLE_ID")
     private Integer receiverRoleId;
 

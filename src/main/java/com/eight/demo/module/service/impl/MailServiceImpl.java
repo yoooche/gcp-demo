@@ -1,6 +1,9 @@
 package com.eight.demo.module.service.impl;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import com.eight.demo.module.common.error.BaseException;
 import com.eight.demo.module.constant.StatusCode;
@@ -15,6 +18,8 @@ import com.eight.demo.module.repository.IUserRoleRepo;
 import com.eight.demo.module.service.MailService;
 import com.eight.demo.module.to.MailInboxTO;
 import com.eight.demo.module.to.MailSendTO;
+import com.eight.demo.module.to.UserMailInboxTO;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +73,36 @@ public class MailServiceImpl implements MailService {
 
         log.info("Total {} mails inbox", mailInboxes.size());
         mailInboxRepo.saveAll(mailInboxes);
+    }
+
+    @Override
+    public List<UserMailInboxTO> getUserInboxMails(Integer userId) {
+        var mailInboxes = mailInboxRepo.findByUserId(userId);
+        var statusMap = mailInboxes.stream()
+                .collect(Collectors.toMap(MailInbox::getMailId, MailInbox::getStatus));
+
+        var ids = mailInboxes.stream()
+                .map(MailInbox::getMailId)
+                .toList();
+
+        var mails = mailRepo.findInMailIdsOrderByCreateTime(ids);
+        var result = new ArrayList<UserMailInboxTO>();
+
+        mails.forEach(mail -> {
+            var userMail = UserMailInboxTO.builder()
+                    .title(mail.getTitle())
+                    .content(mail.getContent())
+                    .status(statusMap.get(mail.getMailId()))
+                    .build();
+            result.add(userMail);
+        });
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void markAsRead(Long mailId, Integer userId) {
+        mailInboxRepo.updateStatusByMailIdAndUserId(mailId, userId);
     }
 
 }
