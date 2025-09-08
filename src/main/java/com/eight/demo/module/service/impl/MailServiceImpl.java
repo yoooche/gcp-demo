@@ -18,6 +18,7 @@ import com.eight.demo.module.repository.IUserRoleRepo;
 import com.eight.demo.module.service.MailService;
 import com.eight.demo.module.to.MailInboxTO;
 import com.eight.demo.module.to.MailSendTO;
+import com.eight.demo.module.to.NotificationTO;
 import com.eight.demo.module.to.UserMailInboxTO;
 
 import jakarta.transaction.Transactional;
@@ -42,16 +43,30 @@ public class MailServiceImpl implements MailService {
         var role = roleRepo.findByRoleType(mailSendTO.getReceiverRole())
                 .orElseThrow(() -> new BaseException(StatusCode.REQ_PARAM_ERR, "Role type does not exist"));
 
+        mail.setTitle(mailSendTO.getTitle());
+        mail.setSender(mailSendTO.getSender());
         mail.setContent(mailSendTO.getContent());
         mail.setReceiverRoleId(role.getRoleId());
         mailRepo.saveAndFlush(mail);
 
-        var mailInboxTO = MailInboxTO.builder()
+        var userIds = userRoleRepo.findUserIdByRoleId(role.getRoleId());
+        var mailInboxes = new ArrayList<MailInbox>();
+        userIds.forEach(userId -> {
+            var mailInbox = new MailInbox();
+            mailInbox.setMailId(mail.getMailId());
+            mailInbox.setUserId(userId);
+            mailInboxes.add(mailInbox);
+        });
+        mailInboxRepo.saveAll(mailInboxes);
+
+        var notificationTO = NotificationTO.builder()
                 .mailId(mail.getMailId())
-                .roleId(mail.getReceiverRoleId())
+                .userIds(userIds)
+                .title(mail.getTitle())
+                .content("Your have a new message")
                 .build();
 
-        kafkaSender.send(Topic.MAIL_INBOX, mailInboxTO);
+        kafkaSender.send(Topic.NOTIFICATION, notificationTO);
     }
 
     @Override
