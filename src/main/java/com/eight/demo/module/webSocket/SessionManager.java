@@ -1,4 +1,4 @@
-package com.eight.demo.module.webSocket;
+package com.eight.demo.module.websocket;
 
 import java.util.concurrent.ConcurrentHashMap;
 

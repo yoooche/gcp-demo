@@ -1,4 +1,4 @@
-package com.eight.demo.module.webSocket;
+package com.eight.demo.module.websocket;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -18,10 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class NotificationHandler extends TextWebSocketHandler {
 
-    private final SessionManager sessionManager;
+    private final DistributedSessionManager sessionManager;
 
     /**
-     * 建立連接：提取 userId 並註冊 session
+     * 建立連接：提取 userId 並註冊到分布式 session 管理器
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -46,7 +46,7 @@ public class NotificationHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         var userId = getUserId(session);
         log.debug("Received from user {}: {}", userId, message.getPayload());
-        session.sendMessage(new TextMessage("Test: " + message.getPayload()));
+        session.sendMessage(new TextMessage("Echo: " + message.getPayload()));
     }
 
     @Override

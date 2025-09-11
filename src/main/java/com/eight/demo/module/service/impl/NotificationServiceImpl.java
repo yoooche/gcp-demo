@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.eight.demo.module.service.NotificationService;
 import com.eight.demo.module.to.NotificationTO;
-import com.eight.demo.module.webSocket.SessionManager;
+import com.eight.demo.module.websocket.DistributedSessionManager;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,16 +14,17 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-    private final SessionManager sessionManager;
+    private final DistributedSessionManager sessionManager;
 
     @Override
     public void pushToUsers(NotificationTO notification) {
         var userIds = notification.getUserIds();
         var success = 0;
         var total = userIds.size();
+        var msg = notification.getTitle() + " " + notification.getContent();
 
         for (var userId : userIds) {
-            if (sessionManager.sendMessage(userId, notification.getTitle() + notification.getContent())) {
+            if (sessionManager.sendMessage(userId, msg)) {
                 success++;
             }
         }
