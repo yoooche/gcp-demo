@@ -5,8 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.eight.demo.module.service.NotificationService;
 import com.eight.demo.module.to.NotificationTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.eight.demo.module.utils.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,8 +20,7 @@ public class KafkaConsumer {
     public void processMailNotification(String content) {
         log.info("Receive topic [{}] and message=[{}]", Topic.NOTIFICATION, content);
         try {
-            var om = new ObjectMapper();
-            var notification = om.readValue(content, NotificationTO.class);
+            var notification = JsonUtils.fromJson(content, NotificationTO.class);
             notificationService.pushToUsers(notification);
         } catch (Exception e) {
             log.warn("Failed to process mail task", e);

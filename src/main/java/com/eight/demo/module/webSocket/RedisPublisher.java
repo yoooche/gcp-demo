@@ -4,7 +4,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import com.eight.demo.module.to.PushMessageData;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.eight.demo.module.utils.JsonUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 public class RedisPublisher {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void pubMessage(Integer userId, String message) {
         long startTime = System.currentTimeMillis();
@@ -24,7 +23,7 @@ public class RedisPublisher {
             pushData.setUserId(userId);
             pushData.setMessage(message);
             
-            var jsonMessage = objectMapper.writeValueAsString(pushData);
+            var jsonMessage = JsonUtils.toJson(pushData);
             log.info("Publishing to Redis channel '{}': {}", WebSocketChannel.PUSH_MESSAGE, jsonMessage);
             
             redisTemplate.convertAndSend(WebSocketChannel.PUSH_MESSAGE, jsonMessage);

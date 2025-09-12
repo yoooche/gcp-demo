@@ -5,8 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.eight.demo.module.common.error.BaseException;
 import com.eight.demo.module.constant.StatusCode;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.eight.demo.module.utils.JsonUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +19,10 @@ public class KafkaSender {
 
     public void send(String topic, Object body) {
         try {
-            var om = new ObjectMapper();
-            var message = om.writeValueAsString(body);
+            var message = JsonUtils.toJson(body);
             kafkaTemplate.send(topic, message);
-        } catch (JsonProcessingException e) {
-            throw new BaseException(StatusCode.UNKNOW_ERR, "Json parse failed");
+        } catch (Exception e) {
+            throw new BaseException(StatusCode.UNKNOW_ERR, "Failed to send message: " + e.getMessage());
         }
     }
 }
