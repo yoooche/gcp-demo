@@ -56,13 +56,13 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy to GCE Instance
+        env:
+          IMAGE_URL: ${{ needs.build.outputs.image-url }}
         run: |
           gcloud compute ssh $GCE_INSTANCE --zone=$GCE_ZONE --command="
             gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
-
             sudo docker stop $SERVICE || true
             sudo docker rm $SERVICE || true
-
-            sudo docker pull ${{ needs.build.outputs.image-url }}
-            sudo docker run -d --name $SERVICE --restart unless-stopped -p 8080:8080 ${{ needs.build.outputs.image-url }}
+            sudo docker pull $IMAGE_URL
+            sudo docker run -d --name $SERVICE --restart unless-stopped -p 8080:8080 $IMAGE_URL
           "
