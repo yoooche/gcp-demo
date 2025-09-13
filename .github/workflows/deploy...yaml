@@ -64,12 +64,19 @@ jobs:
         run: |
           IMAGE_URL=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:$GITHUB_SHA
           echo "Using image: $IMAGE_URL"
+          
           gcloud compute scp $GOOGLE_APPLICATION_CREDENTIALS $GCE_INSTANCE:/tmp/sa-key.json --zone=$GCE_ZONE
           
           gcloud compute ssh $GCE_INSTANCE --zone=$GCE_ZONE --command="
+            # 完全清除舊的 gcloud 配置
+            rm -rf ~/.config/gcloud
+            
+            # 重新初始化 gcloud 配置
             gcloud auth activate-service-account --key-file=/tmp/sa-key.json
             gcloud config set project $PROJECT_ID
+            gcloud config set core/project $PROJECT_ID
             
+            # 直接使用 access token 登入 Docker
             ACCESS_TOKEN=\$(gcloud auth print-access-token)
             echo \$ACCESS_TOKEN | docker login -u oauth2accesstoken --password-stdin $GAR_LOCATION-docker.pkg.dev
             
