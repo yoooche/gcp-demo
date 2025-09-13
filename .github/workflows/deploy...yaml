@@ -64,7 +64,6 @@ jobs:
         run: |
           IMAGE_URL=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:$GITHUB_SHA
           echo "Using image: $IMAGE_URL"
-          
           gcloud compute scp $GOOGLE_APPLICATION_CREDENTIALS $GCE_INSTANCE:/tmp/sa-key.json --zone=$GCE_ZONE
           
           gcloud compute ssh $GCE_INSTANCE --zone=$GCE_ZONE --command="
