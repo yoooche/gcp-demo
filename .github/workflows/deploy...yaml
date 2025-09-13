@@ -65,17 +65,20 @@ jobs:
           IMAGE_URL=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:$GITHUB_SHA
           echo "Using image: $IMAGE_URL"
           
-          # 將認證檔案複製到實例
           gcloud compute scp $GOOGLE_APPLICATION_CREDENTIALS $GCE_INSTANCE:/tmp/sa-key.json --zone=$GCE_ZONE
           
           gcloud compute ssh $GCE_INSTANCE --zone=$GCE_ZONE --command="
             gcloud auth activate-service-account --key-file=/tmp/sa-key.json
-            gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
+            gcloud config set project $PROJECT_ID
+            
+            # 直接使用 access token 登入 Docker
+            ACCESS_TOKEN=\$(gcloud auth print-access-token)
+            echo \$ACCESS_TOKEN | docker login -u oauth2accesstoken --password-stdin $GAR_LOCATION-docker.pkg.dev
             
             sudo docker stop $SERVICE || true
             sudo docker rm $SERVICE || true
             sudo docker pull $IMAGE_URL
             sudo docker run -d --name $SERVICE --restart unless-stopped -p 8080:8080 $IMAGE_URL
             
-            rm /tmp/sa-key.json
+            rm -f /tmp/sa-key.json
           "
