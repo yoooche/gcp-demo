@@ -41,6 +41,7 @@ jobs:
           IMAGE_URL=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:$GITHUB_SHA
           docker build -t $IMAGE_URL .
           docker push $IMAGE_URL
+          echo "image-url=$IMAGE_URL" >> $GITHUB_OUTPUT
 
   deploy:
     needs: build
@@ -53,6 +54,11 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup SSH
+        run: |
+          gcloud compute config-ssh --quiet
+          gcloud compute ssh $GCE_INSTANCE --zone=$GCE_ZONE --command="echo 'SSH connection test successful'" || echo "First SSH connection failed, but should work on retry"
 
       - name: Deploy to GCE Instance
         run: |
