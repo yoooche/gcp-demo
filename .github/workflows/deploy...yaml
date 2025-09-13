@@ -68,16 +68,14 @@ jobs:
           gcloud compute scp $GOOGLE_APPLICATION_CREDENTIALS $GCE_INSTANCE:/tmp/sa-key.json --zone=$GCE_ZONE
           
           gcloud compute ssh $GCE_INSTANCE --zone=$GCE_ZONE --command="
-            # 設定環境變數而不是使用 gcloud config
             export GOOGLE_CLOUD_PROJECT=$PROJECT_ID
             export CLOUDSDK_CORE_PROJECT=$PROJECT_ID
             
-            # 認證但不設定專案配置
             gcloud auth activate-service-account --key-file=/tmp/sa-key.json
             
-            # 直接使用 access token 登入 Docker
+            # 為 root 用戶設定 Docker 認證
             ACCESS_TOKEN=\$(gcloud auth print-access-token)
-            echo \$ACCESS_TOKEN | docker login -u oauth2accesstoken --password-stdin $GAR_LOCATION-docker.pkg.dev
+            echo \$ACCESS_TOKEN | sudo docker login -u oauth2accesstoken --password-stdin $GAR_LOCATION-docker.pkg.dev
             
             sudo docker stop $SERVICE || true
             sudo docker rm $SERVICE || true
