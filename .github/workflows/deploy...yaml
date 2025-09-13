@@ -71,7 +71,6 @@ jobs:
             gcloud auth activate-service-account --key-file=/tmp/sa-key.json
             gcloud config set project $PROJECT_ID
             
-            # 直接使用 access token 登入 Docker
             ACCESS_TOKEN=\$(gcloud auth print-access-token)
             echo \$ACCESS_TOKEN | docker login -u oauth2accesstoken --password-stdin $GAR_LOCATION-docker.pkg.dev
             
