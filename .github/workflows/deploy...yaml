@@ -1,4 +1,4 @@
-name: Deploy to GCP Artifact Registry
+name: Deploy to GCE Instance
 
 on:
   push:
