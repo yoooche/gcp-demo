@@ -12,10 +12,14 @@ env:
   GAR_LOCATION: ${{ secrets.GCP_REGION }}
   REPOSITORY: ${{ secrets.ARTIFACT_REPO }}
   SERVICE: ${{ secrets.SERVICE }}
+  GCE_INSTANCE: ${{ secrets.GCE_INSTANCE_NAME }}
+  GCE_ZONE: ${{ secrets.GCE_ZONE }}
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      image-url: ${{ steps.build.outputs.image-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -32,6 +36,34 @@ jobs:
         run: gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
 
       - name: Build and Push Docker image
+        id: build
         run: |
-          docker build -t $GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:$GITHUB_SHA .
-          docker push $GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:$GITHUB_SHA
+          IMAGE_URL=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:$GITHUB_SHA
+          docker build -t $IMAGE_URL .
+          docker push $IMAGE_URL
+          echo "image-url=$IMAGE_URL" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to GCE Instance
+        run: |
+          gcloud compute ssh $GCE_INSTANCE --zone=$GCE_ZONE --command="
+            gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
+
+            sudo docker stop $SERVICE || true
+            sudo docker rm $SERVICE || true
+
+            sudo docker pull ${{ needs.build.outputs.image-url }}
+            sudo docker run -d --name $SERVICE --restart unless-stopped -p 8080:8080 ${{ needs.build.outputs.image-url }}
+          "
+          
