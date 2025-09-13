@@ -66,4 +66,3 @@ jobs:
             sudo docker pull ${{ needs.build.outputs.image-url }}
             sudo docker run -d --name $SERVICE --restart unless-stopped -p 8080:8080 ${{ needs.build.outputs.image-url }}
           "
-          
